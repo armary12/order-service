@@ -1,4 +1,4 @@
-package com.ttbspark.order_service
+package com.ttbspark.order
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication

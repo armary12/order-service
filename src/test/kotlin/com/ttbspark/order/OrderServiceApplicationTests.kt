@@ -1,4 +1,4 @@
-package com.ttbspark.order_service
+package com.ttbspark.order
 
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest
