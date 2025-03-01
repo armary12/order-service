@@ -43,9 +43,24 @@ class OrderService(
 
     fun updateOrderStatus(id: Long, newStatus: OrderStatus): Order? {
         val order = orderRepository.findById(id).orElse(null) ?: return null
+
+        // Validate allowed status transitions
+        val allowedTransitions = validStatusTransitions[order.status] ?: emptySet()
+        if (!allowedTransitions.contains(newStatus)) {
+            throw IllegalStateException("Invalid status transition: ${order.status} → $newStatus")
+        }
+
         order.updateStatus(newStatus)
         return orderRepository.save(order)
     }
+
+    private val validStatusTransitions: Map<OrderStatus, Set<OrderStatus>> = mapOf(
+        OrderStatus.PENDING to setOf(OrderStatus.CONFIRMED, OrderStatus.CANCELED),
+        OrderStatus.CONFIRMED to setOf(OrderStatus.COOKING, OrderStatus.CANCELED),
+        OrderStatus.COOKING to setOf(OrderStatus.DELIVERING, OrderStatus.COMPLETED, OrderStatus.CANCELED),
+        OrderStatus.DELIVERING to setOf(OrderStatus.COMPLETED, OrderStatus.CANCELED),
+        OrderStatus.CANCELED to emptySet()
+    )
 
     fun getAllOrders(): List<Order> {
         return orderRepository.findAll()
