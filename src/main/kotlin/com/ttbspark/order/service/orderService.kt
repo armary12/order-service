@@ -3,6 +3,7 @@ package com.ttbspark.order.service
 import com.ttbspark.order.client.MenuClient
 import com.ttbspark.order.client.PricingClient
 import com.ttbspark.order.client.RestaurantClient
+import com.ttbspark.order.message.OrderEventProducer
 import com.ttbspark.order.model.Order
 import com.ttbspark.order.model.OrderStatus
 import com.ttbspark.order.repository.OrderRepository
@@ -15,9 +16,11 @@ class OrderService(
     private val orderRepository: OrderRepository,
     private val restaurantClient: RestaurantClient,
     private val menuClient: MenuClient,
-    private val pricingClient: PricingClient
+    private val pricingClient: PricingClient,
+    private val orderEventProducer: OrderEventProducer
 ) {
 
+    @Transactional
     fun createOrder(order: Order): Order {
         // Verify restaurant status
         if (!restaurantClient.isRestaurantOpen(order.restaurantId)) {
@@ -35,7 +38,12 @@ class OrderService(
 
         // Save the order with the correct price
         val newOrder = order.copy(totalPrice = actualPrice)
-        return orderRepository.save(newOrder)
+        val savedOrder = orderRepository.save(newOrder)
+
+        // Publish Kafka event after transaction commits
+        orderEventProducer.publishOrderCreatedEvent(newOrder)
+
+        return savedOrder
     }
 
     fun getOrderById(id: Long): Optional<Order> {
@@ -53,7 +61,12 @@ class OrderService(
         }
 
         order.updateStatus(newStatus)
-        return orderRepository.save(order)
+        val updatedOrder = orderRepository.save(order)
+
+        // Publish status update event after commit
+        orderEventProducer.publishOrderStatusUpdatedEvent(updatedOrder, newStatus)
+
+        return updatedOrder
     }
 
     private val validStatusTransitions: Map<OrderStatus, Set<OrderStatus>> = mapOf(
