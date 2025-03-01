@@ -7,6 +7,7 @@ import com.ttbspark.order.model.Order
 import com.ttbspark.order.model.OrderStatus
 import com.ttbspark.order.repository.OrderRepository
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.util.*
 
 @Service
@@ -41,8 +42,9 @@ class OrderService(
         return orderRepository.findById(id)
     }
 
+    @Transactional
     fun updateOrderStatus(id: Long, newStatus: OrderStatus): Order? {
-        val order = orderRepository.findById(id).orElse(null) ?: return null
+        val order = orderRepository.findWithLockById(id).orElse(null) ?: return null
 
         // Validate allowed status transitions
         val allowedTransitions = validStatusTransitions[order.status] ?: emptySet()
