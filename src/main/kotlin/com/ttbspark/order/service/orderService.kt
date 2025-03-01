@@ -35,8 +35,4 @@ class OrderService(private val orderRepository: OrderRepository) {
     fun getOrdersByRestaurant(restaurantId: Long): List<Order> {
         return orderRepository.findByRestaurantId(restaurantId)
     }
-
-    fun getOrderStatusTimestamp(orderId: Long, status: OrderStatus): LocalDateTime? {
-        return orderRepository.getOrderStatusTimestamp(orderId, status)
-    }
 }

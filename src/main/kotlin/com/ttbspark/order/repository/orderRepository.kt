@@ -19,12 +19,4 @@ interface OrderRepository : JpaRepository<Order, Long> {
 
     // Find all orders created after a specific time
     fun findByCreatedAtAfter(createdAt: LocalDateTime): List<Order>
-
-    // Custom query to get order history
-    @Query("""
-        SELECT h.timestamp FROM Order o 
-        JOIN o.statusHistory h 
-        WHERE o.id = :orderId AND h.status = :status
-    """)
-    fun getOrderStatusTimestamp(@Param("orderId") orderId: Long, @Param("status") status: OrderStatus): LocalDateTime?
 }

@@ -41,13 +41,4 @@ class OrderController(private val orderService: OrderService) {
     fun getOrdersByRestaurant(@PathVariable restaurantId: Long): ResponseEntity<List<Order>> {
         return ResponseEntity.ok(orderService.getOrdersByRestaurant(restaurantId))
     }
-
-    @GetMapping("/{id}/status/{status}/timestamp")
-    fun getOrderStatusTimestamp(
-        @PathVariable id: Long,
-        @PathVariable status: OrderStatus
-    ): ResponseEntity<String> {
-        val timestamp = orderService.getOrderStatusTimestamp(id, status)
-        return if (timestamp != null) ResponseEntity.ok(timestamp.toString()) else ResponseEntity.notFound().build()
-    }
 }
