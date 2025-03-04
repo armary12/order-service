@@ -3,6 +3,10 @@ package com.ttbspark.order.client
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
 
+data class PriceResponse(
+    val actualPrice: Double
+)
+
 @Service
 class PricingClient(private val webClient: WebClient) {
 
@@ -19,7 +23,8 @@ class PricingClient(private val webClient: WebClient) {
             .uri(pricingServiceUrl)
             .bodyValue(requestBody)
             .retrieve()
-            .bodyToMono(Double::class.java)
+            .bodyToMono(PriceResponse::class.java)
+            .map { it.actualPrice }
             .block()
     }
 }

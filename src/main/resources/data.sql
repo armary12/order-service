@@ -1,5 +1,4 @@
 INSERT INTO orders (
-    id,
     customer_name,
     food_item,
     quantity,
@@ -10,7 +9,6 @@ INSERT INTO orders (
     status,
     created_at
 ) VALUES (
-             1,
              'John Doe',
              'Pizza',
              2,

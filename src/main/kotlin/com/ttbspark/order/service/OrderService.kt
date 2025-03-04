@@ -81,6 +81,7 @@ class OrderService(
         if (!allowedTransitions.contains(newStatus)) {
             throw InvalidOrderStatusException("Invalid status transition: ${order.status} → $newStatus")
         }
+
         // Check payment if going from PENDING to CONFIRMED
         if (order.status == OrderStatus.PENDING && newStatus == OrderStatus.CONFIRMED) {
             if (!paymentClient.isPaymentComplete(order.id)) {

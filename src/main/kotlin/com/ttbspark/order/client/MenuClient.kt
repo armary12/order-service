@@ -3,6 +3,10 @@ package com.ttbspark.order.client
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
 
+data class MenuCheckResponse(
+    val result: Boolean
+)
+
 @Service
 class MenuClient(private val webClient: WebClient) {
 
@@ -15,7 +19,8 @@ class MenuClient(private val webClient: WebClient) {
             .uri(menuServiceUrl)
             .bodyValue(requestBody)
             .retrieve()
-            .bodyToMono(Boolean::class.java)
+            .bodyToMono(MenuCheckResponse::class.java)
+            .map { it.result }
             .block() ?: false
     }
 }

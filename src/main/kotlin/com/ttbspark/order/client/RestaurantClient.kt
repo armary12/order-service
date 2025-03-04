@@ -3,6 +3,10 @@ package com.ttbspark.order.client
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
 
+data class RestaurantStatusResponse(
+    val result: Boolean
+)
+
 @Service
 class RestaurantClient(private val webClient: WebClient) {
 
@@ -12,7 +16,8 @@ class RestaurantClient(private val webClient: WebClient) {
         return webClient.get()
             .uri("$restaurantServiceUrl/$restaurantId/status")
             .retrieve()
-            .bodyToMono(Boolean::class.java)
+            .bodyToMono(RestaurantStatusResponse::class.java)
+            .map { it.result }
             .block() ?: false
     }
 }

@@ -20,7 +20,7 @@ class OrderEventProducer(private val kafkaTemplate: KafkaTemplate<String, OrderE
             status = order.status,
             eventType = "ORDER_CREATED"
         )
-        kafkaTemplate.send("order-events", event.orderId.toString(), event)
+//        kafkaTemplate.send("order-events", event.orderId.toString(), event)
     }
 
     fun publishOrderStatusUpdatedEvent(order: Order, newStatus: OrderStatus) {
@@ -33,6 +33,6 @@ class OrderEventProducer(private val kafkaTemplate: KafkaTemplate<String, OrderE
             status = newStatus,
             eventType = "STATUS_UPDATED"
         )
-        kafkaTemplate.send("order-events", event.orderId.toString(), event)
+//        kafkaTemplate.send("order-events", event.orderId.toString(), event)
     }
 }
