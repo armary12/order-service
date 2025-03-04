@@ -1,16 +1,22 @@
 package com.ttbspark.order.service
 
 import com.ttbspark.order.client.MenuClient
+import com.ttbspark.order.client.PaymentClient
 import com.ttbspark.order.client.PricingClient
 import com.ttbspark.order.client.RestaurantClient
 import com.ttbspark.order.exception.InvalidOrderStatusException
+import com.ttbspark.order.exception.PaymentNotCompletedException
 import com.ttbspark.order.exception.RestaurantClosedException
 import com.ttbspark.order.message.OrderEventProducer
 import com.ttbspark.order.model.Order
 import com.ttbspark.order.model.OrderStatus
 import com.ttbspark.order.repository.OrderRepository
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDateTime
 import java.util.*
 
 @Service
@@ -19,7 +25,8 @@ class OrderService(
     private val restaurantClient: RestaurantClient,
     private val menuClient: MenuClient,
     private val pricingClient: PricingClient,
-    private val orderEventProducer: OrderEventProducer
+    private val orderEventProducer: OrderEventProducer,
+    private val paymentClient: PaymentClient
 ) {
 
     @Transactional
@@ -74,6 +81,12 @@ class OrderService(
         if (!allowedTransitions.contains(newStatus)) {
             throw InvalidOrderStatusException("Invalid status transition: ${order.status} → $newStatus")
         }
+        // Check payment if going from PENDING to CONFIRMED
+        if (order.status == OrderStatus.PENDING && newStatus == OrderStatus.CONFIRMED) {
+            if (!paymentClient.isPaymentComplete(order.id)) {
+                throw PaymentNotCompletedException("Payment not yet completed for Order ID: ${order.id}")
+            }
+        }
 
         order.updateStatus(newStatus)
         val updatedOrder = orderRepository.save(order)
@@ -102,5 +115,24 @@ class OrderService(
 
     fun getOrdersByRestaurant(restaurantId: Long): List<Order> {
         return orderRepository.findByRestaurantId(restaurantId)
+    }
+
+    fun searchOrdersInRestaurant(
+        restaurantId: Long,
+        status: OrderStatus?,
+        fromDate: LocalDateTime?,
+        toDate: LocalDateTime?,
+        page: Int,
+        size: Int
+    ): Page<Order> {
+        val pageable = PageRequest.of(page, size, Sort.by("createdAt").descending())
+
+        return orderRepository.searchOrders(
+            restaurantId = restaurantId,
+            status = status,
+            fromDate = fromDate,
+            toDate = toDate,
+            pageable = pageable
+        )
     }
 }

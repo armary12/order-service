@@ -3,8 +3,10 @@ package com.ttbspark.order.controller
 import com.ttbspark.order.model.Order
 import com.ttbspark.order.model.OrderStatus
 import com.ttbspark.order.service.OrderService
+import org.springframework.data.domain.Page
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.time.LocalDateTime
 
 @RestController
 @RequestMapping("/api/orders")
@@ -40,5 +42,24 @@ class OrderController(private val orderService: OrderService) {
     @GetMapping("/restaurant/{restaurantId}")
     fun getOrdersByRestaurant(@PathVariable restaurantId: Long): ResponseEntity<List<Order>> {
         return ResponseEntity.ok(orderService.getOrdersByRestaurant(restaurantId))
+    }
+
+    @GetMapping("/restaurants/{restaurantId}/orders/search")
+    fun searchOrders(
+        @PathVariable restaurantId: Long,
+        @RequestParam(required = false) status: OrderStatus?,
+        @RequestParam(required = false) fromDate: LocalDateTime?,
+        @RequestParam(required = false) toDate: LocalDateTime?,
+        @RequestParam(defaultValue = "0") page: Int,
+        @RequestParam(defaultValue = "10") size: Int
+    ): Page<Order> {
+        return orderService.searchOrdersInRestaurant(
+            restaurantId = restaurantId,
+            status = status,
+            fromDate = fromDate,
+            toDate = toDate,
+            page = page,
+            size = size
+        )
     }
 }

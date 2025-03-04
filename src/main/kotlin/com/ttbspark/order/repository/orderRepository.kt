@@ -3,6 +3,8 @@ package com.ttbspark.order.repository
 import com.ttbspark.order.model.Order
 import com.ttbspark.order.model.OrderStatus
 import jakarta.persistence.LockModeType
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Lock
 import org.springframework.data.jpa.repository.Query
@@ -25,4 +27,20 @@ interface OrderRepository : JpaRepository<Order, Long> {
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     fun findWithLockById(id: Long): Optional<Order>
+
+    @Query("""
+        SELECT o 
+        FROM Order o
+        WHERE o.restaurantId = :restaurantId
+          AND (:status IS NULL OR o.status = :status)
+          AND (:fromDate IS NULL OR o.createdAt >= :fromDate)
+          AND (:toDate IS NULL OR o.createdAt <= :toDate)
+    """)
+    fun searchOrders(
+        @Param("restaurantId") restaurantId: Long,
+        @Param("status") status: OrderStatus?,
+        @Param("fromDate") fromDate: LocalDateTime?,
+        @Param("toDate") toDate: LocalDateTime?,
+        pageable: Pageable
+    ): Page<Order>
 }
