@@ -4,7 +4,9 @@ import com.ttbspark.order.client.MenuClient
 import com.ttbspark.order.client.PaymentClient
 import com.ttbspark.order.client.PricingClient
 import com.ttbspark.order.client.RestaurantClient
+import com.ttbspark.order.exception.InvalidOrderStatusException
 import com.ttbspark.order.exception.PaymentNotCompletedException
+import com.ttbspark.order.exception.RestaurantClosedException
 import com.ttbspark.order.message.OrderEventProducer
 import com.ttbspark.order.model.Order
 import com.ttbspark.order.model.OrderStatus
@@ -79,7 +81,6 @@ internal class OrderServiceTest {
         // Then
         assertEquals(20.0, result.totalPrice)
         assertEquals(1, result.id)
-//        verify(orderEventProducer).publishOrderCreatedEvent(any())
     }
 
     @Test
@@ -101,6 +102,126 @@ internal class OrderServiceTest {
             orderService.createOrder(order)
         }
         assertEquals("Quantity must be greater than zero.", exception.message)
+    }
+
+    @Test
+    fun `createOrder should throw IllegalArgumentException when quantity exceeds max allowed`() {
+        // Given
+        val order = Order(
+            customerName = "John Doe",
+            foodItem = "Pizza",
+            quantity = 101,
+            unitPrice = 10.0,
+            totalPrice = 0.0,
+            address = "123 Main St",
+            restaurantId = 100,
+            status = OrderStatus.PENDING,
+            createdAt = LocalDateTime.now()
+        )
+        // When & Then
+        val exception = assertThrows(IllegalArgumentException::class.java) {
+            orderService.createOrder(order)
+        }
+        assertEquals("Cannot order more than 100 items.", exception.message)
+    }
+
+    @Test
+    fun `createOrder should throw RestaurantClosedException when restaurant is closed`() {
+        // Given
+        val order = Order(
+            customerName = "John Doe",
+            foodItem = "Pizza",
+            quantity = 2,
+            unitPrice = 10.0,
+            totalPrice = 0.0,
+            address = "123 Main St",
+            restaurantId = 101,
+            status = OrderStatus.PENDING,
+            createdAt = LocalDateTime.now()
+        )
+        `when`(restaurantClient.isRestaurantOpen(order.restaurantId)).thenReturn(false)
+        // When & Then
+        val exception = assertThrows(RestaurantClosedException::class.java) {
+            orderService.createOrder(order)
+        }
+        assertEquals("Restaurant is currently closed.", exception.message)
+    }
+
+    @Test
+    fun `createOrder should throw IllegalStateException when menu is not available`() {
+        // Given
+        val order = Order(
+            customerName = "John Doe",
+            foodItem = "Burger",
+            quantity = 2,
+            unitPrice = 10.0,
+            totalPrice = 0.0,
+            address = "123 Main St",
+            restaurantId = 102,
+            status = OrderStatus.PENDING,
+            createdAt = LocalDateTime.now()
+        )
+        // Ensure restaurant is open
+        `when`(restaurantClient.isRestaurantOpen(order.restaurantId)).thenReturn(true)
+        // Simulate menu item not available
+        `when`(menuClient.isMenuAvailable(order.foodItem, order.restaurantId)).thenReturn(false)
+        // When & Then
+        val exception = assertThrows(IllegalStateException::class.java) {
+            orderService.createOrder(order)
+        }
+        assertEquals("Menu item is not available.", exception.message)
+    }
+
+    @Test
+    fun `createOrder should throw IllegalStateException when pricing client returns null`() {
+        // Given
+        val order = Order(
+            customerName = "John Doe",
+            foodItem = "Pasta",
+            quantity = 2,
+            unitPrice = 10.0,
+            totalPrice = 0.0,
+            address = "123 Main St",
+            restaurantId = 103,
+            status = OrderStatus.PENDING,
+            createdAt = LocalDateTime.now()
+        )
+        // Ensure restaurant is open and menu is available
+        `when`(restaurantClient.isRestaurantOpen(order.restaurantId)).thenReturn(true)
+        `when`(menuClient.isMenuAvailable(order.foodItem, order.restaurantId)).thenReturn(true)
+        // Simulate pricing client returning null
+        `when`(pricingClient.getActualPrice(order.foodItem, order.quantity, order.restaurantId)).thenReturn(null)
+        // When & Then
+        val exception = assertThrows(IllegalStateException::class.java) {
+            orderService.createOrder(order)
+        }
+        assertEquals("Invalid price received from Pricing Service.", exception.message)
+    }
+
+    @Test
+    fun `createOrder should throw IllegalStateException when pricing client returns non-positive value`() {
+        // Given
+        val order = Order(
+            customerName = "John Doe",
+            foodItem = "Pasta",
+            quantity = 2,
+            unitPrice = 10.0,
+            totalPrice = 0.0,
+            address = "123 Main St",
+            restaurantId = 104,
+            status = OrderStatus.PENDING,
+            createdAt = LocalDateTime.now()
+        )
+        // Ensure restaurant is open and menu is available
+        `when`(restaurantClient.isRestaurantOpen(order.restaurantId)).thenReturn(true)
+        `when`(menuClient.isMenuAvailable(order.foodItem, order.restaurantId)).thenReturn(true)
+        // Simulate pricing client returning 0.0
+        `when`(pricingClient.getActualPrice(order.foodItem, order.quantity, order.restaurantId)).thenReturn(0.0)
+        // When & Then
+        val exception = assertThrows(IllegalStateException::class.java) {
+            orderService.createOrder(order)
+        }
+        assertEquals("Price must be positive.", exception.message)
     }
 
     @Test
@@ -132,7 +253,6 @@ internal class OrderServiceTest {
         // Then
         assertNotNull(updatedOrder)
         assertEquals(OrderStatus.CONFIRMED, updatedOrder?.status)
-//        verify(orderEventProducer).publishOrderStatusUpdatedEvent(any(), argThat { status: OrderStatus -> status == OrderStatus.CONFIRMED })
     }
 
     @Test
@@ -156,6 +276,39 @@ internal class OrderServiceTest {
         assertThrows(PaymentNotCompletedException::class.java) {
             orderService.updateOrderStatus(1, OrderStatus.CONFIRMED)
         }
+    }
+
+    @Test
+    fun `updateOrderStatus should return null when order is not found`() {
+        // Given
+        `when`(orderRepository.findWithLockById(1)).thenReturn(Optional.empty())
+        // When
+        val result = orderService.updateOrderStatus(1, OrderStatus.CONFIRMED)
+        // Then
+        assertNull(result)
+    }
+
+    @Test
+    fun `updateOrderStatus should throw InvalidOrderStatusException for invalid transition`() {
+        // Given
+        val order = Order(
+            id = 1,
+            customerName = "Test",
+            foodItem = "Pizza",
+            quantity = 1,
+            unitPrice = 10.0,
+            totalPrice = 10.0,
+            address = "Test Address",
+            restaurantId = 105,
+            status = OrderStatus.PENDING,
+            createdAt = LocalDateTime.now()
+        )
+        `when`(orderRepository.findWithLockById(1)).thenReturn(Optional.of(order))
+        // Attempt an invalid transition: from PENDING to COOKING (allowed transitions for PENDING are CONFIRMED and CANCELED)
+        val exception = assertThrows(InvalidOrderStatusException::class.java) {
+            orderService.updateOrderStatus(1, OrderStatus.COOKING)
+        }
+        assertTrue(exception.message!!.contains("Invalid status transition"))
     }
 
     @Test
