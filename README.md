@@ -6,61 +6,59 @@
 docker pull armary12/order-microservice
 ```
 
-# Microservice Design
+# Microservice Architecture Overview
 
 ---
 
-## Customer Service
+### Customer Service
 Manages customer profiles, registrations, authentication, addresses, and preferences.
 
----
+### Merchant Service
+Handles merchant registration, profile management, and restaurant configurations.
 
-## Merchant Service
-Handles merchant registration, profile management, and basic restaurant configurations.
+### Menu Service
+Manages food menus for each merchant (items, categories, descriptions, images) with independent updates.
 
----
+### Order Service
+Processes orders, tracks lifecycle stages (waiting, cooking, delivering, completed, cancelled), and communicates with other services.
 
-## Menu Service
-Manages food menus for each merchant, including items, categories, descriptions, and images. This service allows merchants to update their menus independently of other services.
+### Payment Service
+Handles cashless transactions via banking transfers and credit card gateways with secure processing and reconciliation.
 
----
-
-## Order Service
-Processes order creation and management. It tracks the order lifecycle (e.g., waiting for confirmation, cooking, delivering, completed, cancelled) and communicates with other microservices as needed.
-
----
-
-## Payment Service
-Handles cashless transactions by integrating with both banking transfers and credit card gateways. It ensures secure payment processing and reconciliation.
-
----
-
-## Delivery Service
+### Delivery Service
 Manages dispatch, tracking, and assignment of orders to delivery personnel or third-party logistics.
 
----
+### Notification Service
+Sends real-time notifications (email, SMS, push) for order updates and promotions.
 
-## Notification Service
-Sends real-time notifications (via email, SMS, or push notifications) to customers, merchants, and delivery partners about order updates and promotions.
+### Pricing Service
+Manages pricing strategies and dynamic rules (regular, surge, discount) with integration to Menu and Promotion services.
 
----
+### Promotion Service
+Manages promotional campaigns, discount codes, and coupon management for special deals and effectiveness tracking.
 
-## Pricing Service
-Manages pricing strategies and dynamic pricing rules for food items, including regular prices and potential surge or discount pricing. This service may integrate with both the Menu and Promotion services.
-
----
-
-## Promotion Service
-Manages promotional campaigns, discount codes, and coupon management. It allows the platform to offer special deals and track promotional effectiveness.
+### Landing Page Service
+Handles the public-facing marketing website and landing pages for merchant highlights, promotions, and general platform info.
 
 ---
+# Useful Public cloud services
 
-## Landing Page Service
-Handles the public-facing marketing website and landing pages. This service is responsible for presenting merchant highlights, promotional content, and general information about the platform to potential customers.
+---
+### Message Queue:
+Use a service like AWS SQS to let different parts of your system talk to each other without waiting.
+
+### Serverless Functions:
+Use services like AWS Lambda to run small tasks automatically, such as sending notifications or processing data.
+
+### IDP & Session Management:
+Use AWS Cognito for easy and secure user logins, and a managed Redis service for keeping track of user sessions.
+
+### Logging & API Gateway:
+Use centralized logging tools (like AWS CloudWatch) to watch your system, and an API gateway to manage and secure incoming requests.
 
 ---
 
-## Project Overview
+## Order service Overview
 This is an Order Microservice for a Food Delivery Platform developed using Kotlin and Spring Boot. The microservice handles order creation, status management, and provides REST endpoints for order-related operations.
 
 ## Technology Stack
