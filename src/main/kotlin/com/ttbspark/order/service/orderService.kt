@@ -3,6 +3,8 @@ package com.ttbspark.order.service
 import com.ttbspark.order.client.MenuClient
 import com.ttbspark.order.client.PricingClient
 import com.ttbspark.order.client.RestaurantClient
+import com.ttbspark.order.exception.InvalidOrderStatusException
+import com.ttbspark.order.exception.RestaurantClosedException
 import com.ttbspark.order.message.OrderEventProducer
 import com.ttbspark.order.model.Order
 import com.ttbspark.order.model.OrderStatus
@@ -22,9 +24,18 @@ class OrderService(
 
     @Transactional
     fun createOrder(order: Order): Order {
+        if (order.quantity <= 0) {
+            throw IllegalArgumentException("Quantity must be greater than zero.")
+        }
+
+        val maxAllowed = 100
+        if (order.quantity > maxAllowed) {
+            throw IllegalArgumentException("Cannot order more than $maxAllowed items.")
+        }
+
         // Verify restaurant status
         if (!restaurantClient.isRestaurantOpen(order.restaurantId)) {
-            throw IllegalStateException("Restaurant is currently closed.")
+            throw RestaurantClosedException("Restaurant is currently closed.")
         }
 
         // Verify menu availability
@@ -35,6 +46,10 @@ class OrderService(
         // Fetch actual price
         val actualPrice = pricingClient.getActualPrice(order.foodItem, order.quantity, order.restaurantId)
             ?: throw IllegalStateException("Invalid price received from Pricing Service.")
+
+        if (actualPrice <= 0) {
+            throw IllegalStateException("Price must be positive.")
+        }
 
         // Save the order with the correct price
         val newOrder = order.copy(totalPrice = actualPrice)
@@ -57,7 +72,7 @@ class OrderService(
         // Validate allowed status transitions
         val allowedTransitions = validStatusTransitions[order.status] ?: emptySet()
         if (!allowedTransitions.contains(newStatus)) {
-            throw IllegalStateException("Invalid status transition: ${order.status} → $newStatus")
+            throw InvalidOrderStatusException("Invalid status transition: ${order.status} → $newStatus")
         }
 
         order.updateStatus(newStatus)
