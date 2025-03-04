@@ -29,21 +29,6 @@ class OrderController(private val orderService: OrderService) {
         return if (updatedOrder != null) ResponseEntity.ok(updatedOrder) else ResponseEntity.notFound().build()
     }
 
-    @GetMapping
-    fun getAllOrders(): ResponseEntity<List<Order>> {
-        return ResponseEntity.ok(orderService.getAllOrders())
-    }
-
-    @GetMapping("/status/{status}")
-    fun getOrdersByStatus(@PathVariable status: OrderStatus): ResponseEntity<List<Order>> {
-        return ResponseEntity.ok(orderService.getOrdersByStatus(status))
-    }
-
-    @GetMapping("/restaurant/{restaurantId}")
-    fun getOrdersByRestaurant(@PathVariable restaurantId: Long): ResponseEntity<List<Order>> {
-        return ResponseEntity.ok(orderService.getOrdersByRestaurant(restaurantId))
-    }
-
     @GetMapping("/restaurants/{restaurantId}/orders/search")
     fun searchOrders(
         @PathVariable restaurantId: Long,

@@ -105,18 +105,6 @@ class OrderService(
         OrderStatus.CANCELED to emptySet()
     )
 
-    fun getAllOrders(): List<Order> {
-        return orderRepository.findAll()
-    }
-
-    fun getOrdersByStatus(status: OrderStatus): List<Order> {
-        return orderRepository.findByStatus(status)
-    }
-
-    fun getOrdersByRestaurant(restaurantId: Long): List<Order> {
-        return orderRepository.findByRestaurantId(restaurantId)
-    }
-
     fun searchOrdersInRestaurant(
         restaurantId: Long,
         status: OrderStatus?,
