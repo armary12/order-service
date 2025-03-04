@@ -1,7 +1,5 @@
 # Food Delivery Platform - Order Microservice
 
-## Project Overview
-
 ## Docker Image
 ```bash
 
