@@ -6,6 +6,60 @@
 docker pull armary12/order-microservice
 ```
 
+# Microservice Design
+
+---
+
+## Customer Service
+Manages customer profiles, registrations, authentication, addresses, and preferences.
+
+---
+
+## Merchant Service
+Handles merchant registration, profile management, and basic restaurant configurations.
+
+---
+
+## Menu Service
+Manages food menus for each merchant, including items, categories, descriptions, and images. This service allows merchants to update their menus independently of other services.
+
+---
+
+## Order Service
+Processes order creation and management. It tracks the order lifecycle (e.g., waiting for confirmation, cooking, delivering, completed, cancelled) and communicates with other microservices as needed.
+
+---
+
+## Payment Service
+Handles cashless transactions by integrating with both banking transfers and credit card gateways. It ensures secure payment processing and reconciliation.
+
+---
+
+## Delivery Service
+Manages dispatch, tracking, and assignment of orders to delivery personnel or third-party logistics.
+
+---
+
+## Notification Service
+Sends real-time notifications (via email, SMS, or push notifications) to customers, merchants, and delivery partners about order updates and promotions.
+
+---
+
+## Pricing Service
+Manages pricing strategies and dynamic pricing rules for food items, including regular prices and potential surge or discount pricing. This service may integrate with both the Menu and Promotion services.
+
+---
+
+## Promotion Service
+Manages promotional campaigns, discount codes, and coupon management. It allows the platform to offer special deals and track promotional effectiveness.
+
+---
+
+## Landing Page Service
+Handles the public-facing marketing website and landing pages. This service is responsible for presenting merchant highlights, promotional content, and general information about the platform to potential customers.
+
+---
+
 ## Project Overview
 This is an Order Microservice for a Food Delivery Platform developed using Kotlin and Spring Boot. The microservice handles order creation, status management, and provides REST endpoints for order-related operations.
 
@@ -30,13 +84,6 @@ The system supports the following order status transitions:
 3. COOKING → DELIVERING, COMPLETED, or CANCELED
 4. DELIVERING → COMPLETED or CANCELED
 5. CANCELED → No further transitions
-
-## Microservice Validations
-- Restaurant open status check
-- Menu item availability verification
-- Quantity limits (1-100 items)
-- Price validation
-- Payment completion verification
 
 ## API Endpoints
 
