@@ -68,17 +68,3 @@ curl -X PUT "http://localhost:8080/api/orders/1/status?status=CONFIRMED"
 ```bash
 curl -X GET "http://localhost:8080/api/orders/restaurants/1/orders/search?status=PENDING&page=0&size=10"
 ```
-
-## Error Handling
-The microservice handles various exceptions:
-- `RestaurantClosedException`
-- `InvalidOrderStatusException`
-- `PaymentNotCompletedException`
-- Validation exceptions for order creation
-
-## Configuration Recommendations
-- Use environment variables for configuration
-- Implement circuit breakers for external service calls
-- Configure robust logging
-- Implement comprehensive error tracking
-
