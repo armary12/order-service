@@ -1,5 +1,3 @@
-# Food Delivery Platform - Order Microservice
-
 ## Docker Image
 ```bash
 
@@ -8,7 +6,6 @@ docker pull armary12/order-microservice
 
 # Microservice Architecture Overview
 
----
 
 ### Customer Service
 Manages customer profiles, registrations, authentication, addresses, and preferences.
@@ -40,10 +37,8 @@ Manages promotional campaigns, discount codes, and coupon management for special
 ### Landing Page Service
 Handles the public-facing marketing website and landing pages for merchant highlights, promotions, and general platform info.
 
----
 # Useful Public cloud services
 
----
 ### Message Queue:
 Use a service like AWS SQS to let different parts of your system talk to each other without waiting.
 
