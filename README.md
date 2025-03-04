@@ -1,6 +1,14 @@
 # Food Delivery Platform - Order Microservice
 
 ## Project Overview
+
+## Docker Image
+```bash
+
+docker pull armary12/order-microservice
+```
+
+## Project Overview
 This is an Order Microservice for a Food Delivery Platform developed using Kotlin and Spring Boot. The microservice handles order creation, status management, and provides REST endpoints for order-related operations.
 
 ## Technology Stack
