@@ -1,4 +1,4 @@
-FROM openjdk:17 AS build
+FROM openjdk:21 AS build
 WORKDIR /app
 COPY .mvn/ .mvn/
 COPY mvnw .
@@ -8,7 +8,7 @@ COPY src src
 RUN ./mvnw clean package
 
 
-FROM openjdk:17-slim
+FROM openjdk:21-slim
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
