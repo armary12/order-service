@@ -31,6 +31,7 @@ data class Order(
 
     @ElementCollection
     @CollectionTable(name = "order_status_history", joinColumns = [JoinColumn(name = "order_id")])
+    @MapKeyEnumerated(EnumType.STRING)
     @MapKeyColumn(name = "status")
     @Column(name = "timestamp")
     var statusHistory: MutableMap<OrderStatus, LocalDateTime> = mutableMapOf()

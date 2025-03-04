@@ -3,6 +3,7 @@ package com.ttbspark.order.message
 import com.ttbspark.order.message.dto.OrderEvent
 import com.ttbspark.order.model.Order
 import com.ttbspark.order.model.OrderStatus
+import org.springframework.context.annotation.Profile
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
 

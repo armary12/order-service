@@ -5,10 +5,12 @@ import com.ttbspark.order.message.dto.PaymentCompletedEvent
 import com.ttbspark.order.model.OrderStatus
 import com.ttbspark.order.service.OrderService
 import org.slf4j.LoggerFactory
+import org.springframework.context.annotation.Profile
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Component
 
 @Component
+@Profile("dev","sit","prod")
 class PaymentEventListener(
     private val orderService: OrderService
 ) {
